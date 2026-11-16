@@ -2,17 +2,6 @@
 
 A game library and launcher that runs entirely in the browser. Built-in games work offline. Your own games play through [EmulatorJS](https://emulatorjs.org).
 
-## Publish on GitHub Pages
-1. Create a new GitHub repository and upload every file in this folder (keep the `.nojekyll` file).
-2. Go to **Settings → Pages**, set **Source** to *Deploy from a branch*, pick `main` and `/ (root)`, then Save.
-3. After a minute your site is live at `https://<your-name>.github.io/<repo>/`.
-
-## Run locally
-Service workers need `http://localhost` (opening the file directly won't work):
-
-    python3 -m http.server 8000     # or: npx serve
-
-Then open http://localhost:8000.
 
 ## Notes
 - PlayStation games: select the `.cue` and `.bin` together (or drag both in). Shelf bundles them into one game. Single `.iso`, `.chd` and `.pbp` files work as they are.
