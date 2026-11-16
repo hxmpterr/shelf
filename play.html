@@ -1,0 +1,18 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Play</title>
+<style>html,body{margin:0;height:100%;background:#000;color:#938c7c;font:14px system-ui,sans-serif;overflow:hidden}#game{width:100%;height:100%}
+#msg{position:fixed;inset:0;display:grid;place-items:center;text-align:center;padding:30px;pointer-events:none;transition:opacity .5s}</style></head>
+<body><div id="game"></div><div id="msg">Starting emulator…</div>
+<script>
+const q = new URLSearchParams(location.search), msg = document.getElementById('msg');
+const fail = m => { msg.style.opacity = 1; msg.style.pointerEvents = 'auto'; msg.textContent = m; };
+EJS_player = '#game'; EJS_core = q.get('core'); EJS_color = '#e8a33d'; EJS_startOnLoaded = true;
+EJS_gameName = q.get('title') || q.get('name');
+EJS_gameUrl = location.href.split('play.html')[0] + '__rom/' + encodeURIComponent(q.get('id')) + '/' + encodeURIComponent(q.get('name'));
+EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+EJS_onGameStart = () => { msg.style.opacity = 0; };
+const s = document.createElement('script'); s.src = EJS_pathtodata + 'loader.js';
+s.onerror = () => fail('Could not reach the emulator files. Check your internet connection and reload.');
+document.body.appendChild(s);
+setTimeout(() => { if (msg.style.opacity !== '0') msg.textContent = 'Still loading… large games can take a moment. If nothing happens, go back and reload the page once.'; }, 20000);
+addEventListener('keydown', e => { if (e.key === 'Escape') parent.postMessage('shelf-exit', '*'); });
+</script></body></html>

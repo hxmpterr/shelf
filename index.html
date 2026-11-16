@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Shelf</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#121110">
+<style>
+:root{--bg:#121110;--side:#0e0d0c;--panel:#1a1917;--line:#2a2824;--text:#ece7dd;--dim:#8f8979;--acc:#e8a33d;--sz:176px;--ease:cubic-bezier(.2,.8,.2,1);--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden}
+button,select,input{font:inherit;color:inherit}button{cursor:pointer}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.app{display:grid;grid-template-columns:230px 1fr;height:100%}
+aside{background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:20px 12px}
+.logo{font-weight:800;font-size:21px;letter-spacing:-.04em;padding:0 10px 20px}.logo i{color:var(--acc);font-style:normal}
+nav{flex:1;overflow:auto;display:flex;flex-direction:column;gap:1px}
+nav h4{margin:18px 10px 6px;font:600 10px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.nv{display:flex;justify-content:space-between;align-items:center;text-align:left;background:none;border:0;border-radius:7px;padding:7px 10px;color:var(--dim);position:relative;transition:background .25s,color .25s,padding .3s var(--ease)}
+.nv:hover{color:var(--text);background:rgba(255,255,255,.04);padding-left:14px}
+.nv.on{color:var(--text);background:rgba(255,255,255,.06)}
+.nv.on::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:2px;border-radius:2px;background:var(--acc);animation:grow .4s var(--ease)}
+@keyframes grow{from{transform:scaleY(0)}}
+.nv span{font:11px var(--mono);opacity:.7}
+.foot{display:flex;flex-direction:column;gap:8px;padding-top:12px}
+.btn{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 14px;transition:transform .2s var(--ease),border-color .2s,background .2s}
+.btn:hover{border-color:#4b463b;transform:translateY(-1px)}.btn:active{transform:scale(.97)}
+.btn.pri{background:var(--acc);color:#1a1405;border-color:var(--acc);font-weight:700}.btn.pri:hover{background:#f0b255}
+kbd{font:11px var(--mono);border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--dim)}
+.content{display:flex;flex-direction:column;min-width:0;min-height:0}
+.top{display:flex;align-items:center;gap:12px;padding:20px 32px 4px;flex-wrap:wrap}
+.top h1{margin:0 auto 0 0;font-size:26px;letter-spacing:-.03em}.top h1 small{font:12px var(--mono);color:var(--dim);margin-left:10px;letter-spacing:0}
+.ctl{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 11px;outline:none}
+.search{width:230px;transition:width .4s var(--ease),border-color .2s}.search:focus{width:320px;border-color:var(--acc)}
+input[type=range]{accent-color:var(--acc);width:90px;padding:0}
+main{flex:1;overflow:auto;padding:18px 32px 60px}
+.hero{position:relative;border-radius:14px;overflow:hidden;min-height:176px;margin-bottom:34px;border:1px solid var(--line);display:flex;align-items:center;gap:22px;padding:22px;background:var(--panel);animation:rise .7s var(--ease) both}
+.hero .bg{position:absolute;inset:-40px;background:center/cover;filter:blur(40px) saturate(1.2) brightness(.55);transition:opacity .6s}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(18,17,16,.85),rgba(18,17,16,.2))}
+.hero>*{position:relative;z-index:1}.hero .hc{width:104px;flex:none}
+.hero small{font:11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}.hero h2{margin:4px 0 14px;font-size:30px;letter-spacing:-.03em}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--sz),1fr));gap:26px 20px}
+.card{position:relative;animation:rise .55s var(--ease) both;animation-delay:calc(var(--i)*35ms);perspective:700px;cursor:pointer;border-radius:12px}
+@keyframes rise{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:none}}
+.cover{position:relative;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:var(--panel);border:1px solid var(--line);transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .35s var(--ease),box-shadow .35s var(--ease),border-color .3s;box-shadow:0 6px 14px -8px #000}
+.card:hover .cover,.card:focus-visible .cover{transform:translateY(-8px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));box-shadow:0 26px 40px -16px #000;border-color:#554f42}
+.cover::after{content:"";position:absolute;inset:0;background:radial-gradient(180px circle at var(--mx,50%) var(--my,0%),rgba(255,255,255,.13),transparent 60%);opacity:0;transition:opacity .3s;pointer-events:none;z-index:1}
+.card:hover .cover::after{opacity:1}
+.cover .blur{position:absolute;inset:-20px;background:var(--art) center/cover;filter:blur(18px) brightness(.45);opacity:0;transition:opacity .6s}
+.cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity .6s}
+.cover.has .blur,.cover img.ok{opacity:1}
+.fallback{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:13px;font-weight:700;font-size:15px;line-height:1.2;letter-spacing:-.01em}
+.fallback .g{position:absolute;top:0;right:10px;font-size:96px;font-weight:800;opacity:.18;line-height:1}
+.fallback small{font:500 10px var(--mono);opacity:.7;margin-top:5px;letter-spacing:.04em}
+.cover.has .fallback{opacity:0;transition:opacity .6s}
+.badge{position:absolute;left:8px;bottom:8px;z-index:2;font:700 10px var(--mono);background:rgba(0,0,0,.7);backdrop-filter:blur(6px);border-radius:4px;padding:2px 6px;opacity:0;transform:translateY(6px);transition:all .3s var(--ease)}
+.card:hover .badge{opacity:1;transform:none}
+.playbtn{position:absolute;z-index:2;left:50%;top:50%;width:52px;height:52px;margin:-26px;border-radius:50%;background:var(--acc);color:#1a1405;display:grid;place-items:center;font-size:19px;padding-left:3px;transform:scale(.5);opacity:0;transition:all .35s cubic-bezier(.3,1.5,.5,1);box-shadow:0 10px 24px rgba(0,0,0,.5)}
+.card:hover .playbtn{transform:scale(1);opacity:1}
+.icon{position:absolute;top:8px;z-index:3;width:26px;height:26px;border:0;border-radius:7px;background:rgba(0,0,0,.72);color:#fff;opacity:0;transform:scale(.8);transition:all .25s var(--ease)}
+.card:hover .icon,.icon.on{opacity:1;transform:none}.fav{left:8px}.fav.on{color:var(--acc)}.rm{right:8px}.rm:hover{background:#b33}
+.meta{padding:11px 2px 0}.meta b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meta span{color:var(--dim);font:11px var(--mono)}
+.empty{text-align:center;color:var(--dim);margin-top:14vh;animation:rise .6s var(--ease) both}.empty h2{color:var(--text);margin:0 0 6px}
+.ov{position:fixed;inset:0;background:var(--bg);z-index:20;display:flex;flex-direction:column;animation:ovin .45s var(--ease) both}
+@keyframes ovin{from{opacity:0;transform:scale(1.03)}to{opacity:1;transform:none}}
+.ov.out{animation:ovout .3s var(--ease) both}@keyframes ovout{to{opacity:0;transform:scale(.98)}}
+.bar{display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--line)}
+.stage{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;background:#000;position:relative}
+.stage canvas{max-width:100%;max-height:100%;aspect-ratio:8/5;background:#0f0e0b;box-shadow:0 0 0 1px var(--line),0 30px 80px rgba(0,0,0,.6);animation:rise .6s var(--ease) both}
+.stage iframe{width:100%;height:100%;border:0;animation:rise .5s var(--ease) both}
+.loading{position:absolute;color:var(--dim);animation:pulse 1.4s infinite}@keyframes pulse{50%{opacity:.35}}
+.mid{align-items:center;justify-content:center;text-align:center}
+.sbody{width:min(780px,90vw);animation:step .6s var(--ease) both}
+@keyframes step{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+.sbody.back{animation-name:stepb}@keyframes stepb{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:none}}
+.sbody h1{font-size:40px;margin:0 0 12px;letter-spacing:-.03em}.sbody p{color:var(--dim);font-size:16px;max-width:540px;margin:0 auto 28px}
+.dots{position:absolute;bottom:34px;display:flex;gap:8px}.dots i{width:7px;height:7px;border-radius:9px;background:var(--line);transition:all .4s var(--ease)}.dots i.on{width:26px;background:var(--acc)}
+.pickgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:26px;text-align:left}
+.pick{cursor:pointer;animation:rise .55s var(--ease) both;animation-delay:calc(var(--i)*70ms)}
+.pick .cover{opacity:.5;transition:transform .3s var(--ease),border-color .3s,opacity .3s}
+.pick.sel .cover{opacity:1;border-color:var(--acc);transform:translateY(-4px)}
+.pick .tick{position:absolute;top:8px;right:8px;z-index:3;width:22px;height:22px;border-radius:50%;background:var(--acc);color:#1a1405;display:grid;place-items:center;font-weight:800;font-size:13px;transform:scale(0);transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+.pick.sel .tick{transform:scale(1)}.pick small{color:var(--dim);display:block;margin-top:6px;font-size:11px}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.sysgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;max-width:640px;margin:0 auto 22px}
+#pal{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.5);display:none;justify-content:center;padding-top:14vh;backdrop-filter:blur(3px)}
+#pal.on{display:flex;animation:ovin .2s var(--ease)}
+.pbox{width:min(520px,90vw);height:fit-content;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.7)}
+.pbox input{width:100%;background:none;border:0;border-bottom:1px solid var(--line);padding:14px 16px;font-size:16px;outline:none}
+.pbox .it{padding:10px 16px;cursor:pointer;display:flex;justify-content:space-between}.pbox .it.sel{background:rgba(232,163,61,.14)}.pbox span{color:var(--dim)}
+#toast{position:fixed;bottom:26px;left:50%;transform:translate(-50%,30px);background:var(--text);color:var(--bg);padding:9px 16px;border-radius:8px;opacity:0;transition:all .4s var(--ease);z-index:60;pointer-events:none;max-width:90vw}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+body.drag main{outline:2px dashed var(--acc);outline-offset:-12px}
+@media(max-width:860px){.app{grid-template-columns:1fr}aside{display:none}.pickgrid{grid-template-columns:repeat(3,1fr)}.top,main{padding-left:16px;padding-right:16px}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+/* ---- glass ---- */
+body::before{content:"";position:fixed;inset:-25%;z-index:0;pointer-events:none;background:radial-gradient(38% 38% at 80% 6%,rgba(255,176,64,.26),transparent 70%),radial-gradient(42% 42% at 6% 94%,rgba(70,150,190,.24),transparent 70%),radial-gradient(34% 34% at 52% 58%,rgba(160,110,210,.13),transparent 70%),radial-gradient(30% 30% at 20% 12%,rgba(230,90,110,.10),transparent 70%);animation:drift 36s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translate3d(5%,4%,0) scale(1.1) rotate(2deg)}}
+.app{position:relative;z-index:1;grid-template-columns:248px 1fr;gap:14px;padding:14px}
+.ov{background:radial-gradient(45% 45% at 80% 10%,rgba(255,176,64,.2),transparent 70%),radial-gradient(50% 50% at 10% 90%,rgba(70,150,190,.18),transparent 70%),var(--bg)}
+.ov.play{background:#000}
+.glass,aside,.top,.pbox,.ccard,.btn{position:relative;background:linear-gradient(135deg,rgba(255,255,255,.11),rgba(255,255,255,.025) 55%,rgba(255,255,255,.055));-webkit-backdrop-filter:blur(26px) saturate(1.9);backdrop-filter:blur(26px) saturate(1.9);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),inset 0 0 24px rgba(255,255,255,.035),0 22px 44px -22px rgba(0,0,0,.85);border:0}
+.glass::before,aside::before,.top::before,.pbox::before,.ccard::before,.btn::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;background:linear-gradient(140deg,rgba(255,255,255,.6),rgba(255,255,255,.08) 30%,rgba(255,255,255,.02) 62%,rgba(255,255,255,.32));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+aside{border-radius:22px;height:100%;padding:20px 12px 14px}
+.top{border-radius:18px;margin:0 0 4px;padding:12px 16px}
+.btn{border-radius:11px;overflow:hidden;isolation:isolate;padding:9px 15px;color:var(--text);transition:transform .25s var(--ease),box-shadow .3s}
+.btn::after{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(110px circle at var(--bx,50%) var(--by,0%),rgba(255,255,255,.34),transparent 62%);opacity:0;transition:opacity .3s}
+.btn:hover::after{opacity:1}.btn:hover{transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),inset 0 0 26px rgba(255,255,255,.07),0 16px 30px -14px rgba(0,0,0,.8)}.btn:active{transform:scale(.97)}
+.btn.pri{background:linear-gradient(180deg,rgba(255,206,120,.96),rgba(224,148,36,.9));color:#201505;font-weight:700;box-shadow:inset 0 1px 0 rgba(255,255,255,.65),inset 0 -1px 0 rgba(120,70,0,.35),0 12px 28px -10px rgba(232,163,61,.65)}
+.btn.pri::before{background:linear-gradient(140deg,rgba(255,255,255,.85),rgba(255,230,180,.2) 40%,rgba(255,255,255,.1) 70%,rgba(255,255,255,.5))}
+.ctl{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 8px 18px -12px #000;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-radius:11px}
+kbd{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:6px;padding:1px 6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
+.nv{border-radius:10px}.nv:hover{background:rgba(255,255,255,.06)}.nv.on{background:rgba(255,255,255,.1);box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
+.icon{background:rgba(20,19,17,.5);border:1px solid rgba(255,255,255,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.22);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.cv{right:40px}
+.badge{background:rgba(20,19,17,.5);border:1px solid rgba(255,255,255,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
+.playbtn{background:linear-gradient(180deg,rgba(255,206,120,.96),rgba(224,148,36,.92));border:1px solid rgba(255,224,170,.6);box-shadow:inset 0 1px 0 rgba(255,255,255,.65),0 12px 28px rgba(0,0,0,.55)}
+.pbox{background:rgba(26,25,23,.62);overflow:hidden;border-radius:16px}
+.hero .ht{padding:16px 20px;border-radius:16px}
+.cover{box-shadow:inset 0 0 0 1px rgba(255,255,255,.05),0 8px 18px -10px #000}
+.card:hover .cover,.card:focus-visible .cover{box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 28px 44px -16px #000}
+.art{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
+.fallback.bi{background:linear-gradient(180deg,transparent 78%,rgba(0,0,0,.55));color:#fff;padding:0}.fallback.bi .nm,.fallback.bi small{display:none}
+.sysf{background:linear-gradient(160deg,var(--c),#17161a 135%)!important;color:#fff;overflow:hidden}
+.sysf::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(255,255,255,.07) 0 2px,transparent 2px 14px)}
+.sysf .g{font-size:54px!important;top:auto!important;bottom:48px;right:auto!important;left:12px;opacity:.28!important;letter-spacing:-.04em}
+.sysf>*{position:relative}.sysf small{opacity:.8!important}
+/* consoles menu */
+.ov.cons{overflow:auto}.cbody{padding:26px 36px 50px;max-width:1100px;width:100%;margin:0 auto}
+.clead{color:var(--dim);margin:0 0 16px;font-size:15px}
+.howto{border-radius:16px;padding:16px 20px;margin-bottom:22px;line-height:1.6}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.ccard{border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px;animation:rise .5s var(--ease) both;animation-delay:calc(var(--i)*30ms)}
+.ccard .chip{align-self:flex-start;font:800 12px var(--mono);letter-spacing:.06em;padding:4px 9px;border-radius:7px;background:var(--c);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.4);box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.ccard b{font-size:16px}.ccard .exts{display:flex;gap:5px;flex-wrap:wrap}.ccard small{color:var(--dim);line-height:1.4}.ccard .cnt{font:11px var(--mono);color:var(--acc);margin-top:auto}
+</style></head>
+<body>
+<div class="app">
+  <aside><div class="logo">Shelf<i>.</i></div><nav id="nav"></nav>
+    <div class="foot"><button class="btn" id="cons">Supported consoles</button><button class="btn" id="cmdk">Commands <kbd id="mod">Ctrl K</kbd></button><button class="btn pri" id="add">Add games</button></div></aside>
+  <div class="content"><div class="top"><h1 id="ttl"></h1>
+    <input class="ctl search" id="q" placeholder="Search  ( / )" aria-label="Search">
+    <select class="ctl" id="sort" aria-label="Sort"><option value="title">A–Z</option><option value="played">Recently played</option><option value="added">Recently added</option></select>
+    <input type="range" id="size" min="130" max="260" aria-label="Card size"></div>
+    <main id="main"></main></div>
+</div>
+<div id="pal"><div class="pbox"><input id="pin" placeholder="Type a command or game"><div id="plist"></div></div></div>
+<div id="toast"></div>
+<input type="file" id="file" multiple hidden><input type="file" id="cfile" accept="image/*" hidden>
+
+<script src="systems.js"></script>
+<script src="games.js"></script>
+<script>
+const $ = s => document.querySelector(s), esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+/* ---------- storage ---------- */
+let S = Object.assign({ done: false, builtins: [], lib: [], recent: [], fav: [], size: 176, sort: 'title' }, JSON.parse(localStorage.getItem('shelf.v2') || '{}'));
+const save = () => localStorage.setItem('shelf.v2', JSON.stringify(S));
+const idb = new Promise((ok, no) => { const r = indexedDB.open('shelf', 1); r.onupgradeneeded = () => { r.result.createObjectStore('roms'); r.result.createObjectStore('meta'); }; r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); });
+const tx = async (st, mode, fn) => { const d = await idb; return new Promise((ok, no) => { const t = d.transaction(st, mode), q = fn(t.objectStore(st)); t.oncomplete = () => ok(q && q.result); t.onerror = () => no(t.error); }); };
+const dbGet = (st, k) => tx(st, 'readonly', s => s.get(k)), dbSet = (st, k, v) => tx(st, 'readwrite', s => s.put(v, k)), dbDel = (st, k) => tx(st, 'readwrite', s => s.delete(k));
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
+let swReady = null;
+if ('serviceWorker' in navigator) swReady = navigator.serviceWorker.register('sw.js').then(() => navigator.serviceWorker.ready).catch(() => null);
+
+/* ---------- helpers ---------- */
+const ext = f => f.split('.').pop().toLowerCase(), sysById = id => SYSTEMS.find(s => s.id === id);
+const sysOf = f => SYSTEMS.find(s => s.exts.includes(ext(f)));
+const niceTitle = f => f.replace(/\.[^.]+$/, '').replace(/\s*[\(\[].*?[\)\]]/g, '').trim();
+const toast = m => { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), 2800); };
+const items = () => [
+  ...S.builtins.map(id => GAMES.find(g => g.id === id)).filter(Boolean).map(g => ({ kind: 'b', id: g.id, title: g.title, sys: 'built', g, added: 0 })),
+  ...S.lib.map(l => ({ kind: 'r', ...l }))
+];
+const sysName = it => it.kind === 'b' ? 'Built in' : sysById(it.sys).name;
+
+/* ---------- cover art ---------- */
+const key = s => s.replace(/\.png$/i, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s*[\(\[].*?[\)\]]/g, '').replace(/,\s*the\b/i, '').replace(/^the\s+/i, '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]/g, '');
+const words = s => new Set(s.replace(/\.png$/i, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s*[\(\[].*?[\)\]]/g, '').toLowerCase().replace(/['’]/g, '').replace(/&/g, ' and ').split(/[^a-z0-9]+/).filter(w => w && !['the', 'of', 'and', 'a'].includes(w)));
+const rank = n => (/\((Beta|Proto|Demo|Sample|Unl)/.test(n) ? 10 : 0) + (/\(USA/.test(n) ? 0 : /\(World/.test(n) ? 1 : /\(Europe/.test(n) ? 2 : 3);
+const SIB = { gb: 'gbc', gbc: 'gb', ngp: 'ngc', ngc: 'ngp', ws: 'wsc', wsc: 'ws' };
+const artUrls = (repo, ref) => { const p = ref.split('/').map(encodeURIComponent).join('/') + '.png'; return [`https://thumbnails.libretro.com/${repo}/${p}`, `https://raw.githubusercontent.com/libretro-thumbnails/${repo}/master/${p}`]; };
+/* Name lists: GitHub tree (knows which images exist) -> libretro DAT (official game names, no rate limit) */
+async function nameList(repo) {
+  const ck = 'art2:' + repo, c = await dbGet('meta', ck); if (c) return c;
+  const r = await fetch(`https://api.github.com/repos/libretro-thumbnails/${repo}/git/trees/master?recursive=1`); if (!r.ok) throw 0;
+  const j = await r.json(); if (j.truncated) throw 0;
+  const L = { b: [], t: [], s: [] }, m = { Named_Boxarts: 'b', Named_Titles: 't', Named_Snaps: 's' };
+  for (const t of j.tree) { const p = t.path.split('/'); if (p.length === 2 && m[p[0]] && p[1].endsWith('.png')) L[m[p[0]]].push(p[1].slice(0, -4)); }
+  if (L.b.length) await dbSet('meta', ck, L); return L;
+}
+async function datList(repo) {
+  const ck = 'dat:' + repo, c = await dbGet('meta', ck); if (c) return c;
+  const r = await fetch(`https://raw.githubusercontent.com/libretro/libretro-database/master/dat/${encodeURIComponent(repo.replace(/_/g, ' '))}.dat`); if (!r.ok) throw 0;
+  const names = [...(await r.text()).matchAll(/^\s*name "([^"]+)"/gm)].map(m => m[1].replace(/[&*\/:`<>?\\|]/g, '_')); if (!names.length) throw 0;
+  const L = { b: names }; await dbSet('meta', ck, L); return L;
+}
+function pick(list, file) {
+  const base = file.replace(/\.[^.]+$/, ''), exact = base.replace(/[&*\/:`<>?\\|]/g, '_'); if (list.includes(exact)) return exact;
+  const k = key(base); let c = list.filter(n => key(n) === k); if (!c.length && k.length > 3) c = list.filter(n => key(n).startsWith(k));
+  if (!c.length) { const w = words(base); if (w.size) { let top = 0; for (const n of list) { const v = words(n); let i = 0; w.forEach(x => v.has(x) && i++); const sc = Math.max(i / (w.size + v.size - i), w.size > 1 ? .75 * i / w.size : 0); if (sc > top + 1e-9) { top = sc; c = [n]; } else if (Math.abs(sc - top) < 1e-9 && top) c.push(n); } if (top < .6) c = []; } }
+  return c.sort((a, b) => rank(a) - rank(b) || a.length - b.length)[0] || null;
+}
+const KINDS = [['b', 'Named_Boxarts'], ['t', 'Named_Titles'], ['s', 'Named_Snaps']];
+const loads = u => new Promise(ok => { const i = new Image(), t = setTimeout(() => ok(false), 4000); i.onload = () => { clearTimeout(t); ok(true); }; i.onerror = () => { clearTimeout(t); ok(false); }; i.src = u; });
+async function probe(repo, file) {
+  const base = file.replace(/\.[^.]+$/, ''), t = niceTitle(file);
+  for (const n of [base, ...['(USA)', '(World)', '(Europe)', '(Japan)', '(USA, Europe)', '(Japan, USA)'].map(r => `${t} ${r}`)]) if (await loads(artUrls(repo, 'Named_Boxarts/' + n)[0])) return repo + '|Named_Boxarts/' + n;
+  return null;
+}
+/* Returns an ordered list of "repo|Named_X/name" candidates; the image loader tries each until one loads. */
+async function coverCands(it) {
+  const s = sysById(it.sys), ck = `cv3:${s.id}:${it.file}`, c = await dbGet('meta', ck); if (c !== undefined) return c;
+  const repos = [s.art]; if (SIB[s.id]) repos.push(sysById(SIB[s.id]).art);
+  const per = [];
+  for (const r of repos) { let L = null; try { L = await nameList(r); } catch {} if (!L) { try { L = await datList(r); } catch {} } if (L) per.push([r, L]); }
+  const out = [];
+  for (const [k, d] of KINDS) for (const [r, L] of per) { const n = pick(L[k] || L.b, it.file); if (n) out.push(r + '|' + d + '/' + n); }
+  if (!out.length && !per.length) { const p = await probe(s.art, it.file); if (p) out.push(p); }
+  if (out.length || per.length) await dbSet('meta', ck, out); return out;
+}
+let active = 0; const waiting = [];
+const queue = fn => new Promise(ok => { const go = () => { active++; fn().then(ok, () => ok(null)).finally(() => { active--; waiting.length && waiting.shift()(); }); }; active < 4 ? go() : waiting.push(go); });
+function showCover(img, urls) {
+  let n = 0; img.onerror = () => { if (++n < urls.length) img.src = urls[n]; else img.remove(); };
+  img.onload = () => { img.classList.add('ok'); const cv = img.closest('.cover'); cv.style.setProperty('--art', `url("${img.src}")`); cv.classList.add('has'); const h = img.closest('.hero'); if (h) h.querySelector('.bg').style.backgroundImage = `url("${img.src}")`; };
+  img.src = urls[0];
+}
+function loadCovers() {
+  document.querySelectorAll('img[data-id]').forEach(img => {
+    const it = S.lib.find(l => l.id === img.dataset.id); if (!it) return;
+    dbGet('meta', 'custom:' + it.id).then(cu => {
+      if (cu) return showCover(img, [URL.createObjectURL(cu)]);
+      queue(() => coverCands(it)).then(c => { if (c && c.length && img.isConnected) showCover(img, c.flatMap(s => { const [r, ref] = s.split('|'); return artUrls(r, ref); })); });
+    });
+  });
+}
+function pickCover(id) { const f = $('#cfile'); f.onchange = async () => { if (f.files[0]) { await dbSet('meta', 'custom:' + id, f.files[0]); render(); toast('Cover updated'); } f.value = ''; }; f.click(); }
+
+/* ---------- library view ---------- */
+let filter = 'all', query = '', stop = null;
+const biTile = g => `<svg class="art" viewBox="0 0 300 400" preserveAspectRatio="xMidYMid slice">${g.art}</svg><div class="fallback bi"><span class="nm">${esc(g.title)}</span><small>BUILT IN</small></div>`;
+function tile(it) {
+  if (it.kind === 'b') return biTile(it.g);
+  const s = sysById(it.sys);
+  return `<div class="blur"></div><div class="fallback sysf" style="--c:${s.color}"><span class="g">${esc(s.short)}</span>${esc(it.title)}<small>${esc(s.name.toUpperCase())}</small></div><img data-id="${esc(it.id)}" alt="">`;
+}
+function render() {
+  const all = items(), ids = [...new Set(all.map(i => i.sys))], cnt = s => all.filter(i => i.sys === s).length;
+  const label = s => ({ all: 'Library', fav: 'Favorites', built: 'Built in' }[s] || sysById(s).name);
+  if (!['all', 'fav'].includes(filter) && !ids.includes(filter)) filter = 'all';
+  const nv = (s, n) => `<button class="nv ${filter === s ? 'on' : ''}" data-s="${s}">${label(s)}<span>${n}</span></button>`;
+  $('#nav').innerHTML = nv('all', all.length) + (S.fav.length ? nv('fav', all.filter(i => S.fav.includes(i.id)).length) : '') + (ids.length ? '<h4>Systems</h4>' : '') + ids.map(s => nv(s, cnt(s))).join('');
+  let list = all.filter(i => (filter === 'all' || (filter === 'fav' ? S.fav.includes(i.id) : i.sys === filter)) && i.title.toLowerCase().includes(query.toLowerCase()));
+  list.sort(S.sort === 'played' ? (a, b) => (S.recent.indexOf(a.id) + 1 || 99) - (S.recent.indexOf(b.id) + 1 || 99) || a.title.localeCompare(b.title)
+    : S.sort === 'added' ? (a, b) => b.added - a.added || a.title.localeCompare(b.title) : (a, b) => a.title.localeCompare(b.title));
+  $('#ttl').innerHTML = `${esc(label(filter))}<small>${list.length}</small>`;
+  const last = !query && filter === 'all' && all.find(i => i.id === S.recent[0]);
+  const hero = last ? `<div class="hero" data-id="${esc(last.id)}"><div class="bg" style="background-image:linear-gradient(135deg,${last.kind === 'b' ? last.g.color : '#4b463b'},#1a1917)"></div><div class="hc"><div class="cover">${tile(last)}</div></div><div class="glass ht"><small>Continue playing</small><h2>${esc(last.title)}</h2><button class="btn pri">Play</button></div></div>` : '';
+  $('#main').innerHTML = list.length ? `${hero}<div class="grid">${list.map((it, n) => `<div class="card" tabindex="0" data-id="${esc(it.id)}" style="--i:${Math.min(n, 30)}"><div class="cover"><button class="icon fav ${S.fav.includes(it.id) ? 'on' : ''}" title="Favorite">${S.fav.includes(it.id) ? '★' : '☆'}</button>${it.kind === 'r' ? '<button class="icon cv" title="Set cover image">✎</button><button class="icon rm" title="Remove">✕</button>' : ''}${tile(it)}<span class="badge">${esc(sysName(it))}</span><div class="playbtn">▶</div></div><div class="meta"><b>${esc(it.title)}</b><span>${esc(sysName(it))}</span></div></div>`).join('')}</div>`
+    : `<div class="empty"><h2>${all.length ? 'Nothing here' : 'Your shelf is empty'}</h2>${all.length ? 'Try another filter or search.' : 'Add game files, or drag them onto this window.'}</div>`;
+  loadCovers();
+}
+$('#nav').onclick = e => { const b = e.target.closest('.nv'); if (b) { filter = b.dataset.s; render(); } };
+$('#q').oninput = e => { query = e.target.value; render(); };
+$('#sort').value = S.sort; $('#sort').onchange = e => { S.sort = e.target.value; save(); render(); };
+$('#size').value = S.size; document.documentElement.style.setProperty('--sz', S.size + 'px');
+$('#size').oninput = e => { S.size = +e.target.value; document.documentElement.style.setProperty('--sz', S.size + 'px'); save(); };
+$('#main').onclick = async e => {
+  const h = e.target.closest('.hero'); if (h) return play(items().find(i => i.id === h.dataset.id));
+  const c = e.target.closest('.card'); if (!c) return; const id = c.dataset.id;
+  if (e.target.closest('.fav')) { S.fav = S.fav.includes(id) ? S.fav.filter(x => x !== id) : [...S.fav, id]; save(); return render(); }
+  if (e.target.closest('.cv')) return pickCover(id);
+  if (e.target.closest('.rm')) { S.lib = S.lib.filter(l => l.id !== id); S.fav = S.fav.filter(x => x !== id); S.recent = S.recent.filter(x => x !== id); save(); await dbDel('roms', id); return render(); }
+  play(items().find(i => i.id === id));
+};
+$('#main').onkeydown = e => { if (document.querySelector('.ov')) return; const c = e.target.closest('.card'); if (c && (e.key === 'Enter' || e.key === ' ') && e.target === c) { e.preventDefault(); play(items().find(i => i.id === c.dataset.id)); } };
+$('#main').onmousemove = e => { const c = e.target.closest('.cover'); if (!c) return; const r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+  c.style.setProperty('--mx', x * 100 + '%'); c.style.setProperty('--my', y * 100 + '%'); c.style.setProperty('--ry', (x - .5) * 10 + 'deg'); c.style.setProperty('--rx', (.5 - y) * 10 + 'deg'); };
+$('#main').onmouseout = e => { const c = e.target.closest('.cover'); if (c) { c.style.setProperty('--rx', '0deg'); c.style.setProperty('--ry', '0deg'); } };
+
+/* ---------- adding games ---------- */
+/* ---------- importing (single files, archives, and PlayStation .cue + .bin) ---------- */
+const BIN = ['bin', 'img'];
+const crcTable = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+async function crc32(blob) { let c = -1; const r = blob.stream().getReader(); for (;;) { const { done, value } = await r.read(); if (done) break; for (let i = 0; i < value.length; i++) c = crcTable[(c ^ value[i]) & 255] ^ (c >>> 8); } return (c ^ -1) >>> 0; }
+async function makeZip(files) { // uncompressed zip, streams big files in chunks so memory stays low
+  const parts = [], central = []; let off = 0;
+  for (const f of files) {
+    const nm = new TextEncoder().encode(f.name), crc = await crc32(f.blob), sz = f.blob.size;
+    const lh = new DataView(new ArrayBuffer(30)); lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(12, 0x21, true); lh.setUint32(14, crc, true); lh.setUint32(18, sz, true); lh.setUint32(22, sz, true); lh.setUint16(26, nm.length, true);
+    parts.push(lh.buffer, nm, f.blob);
+    const ch = new DataView(new ArrayBuffer(46)); ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(14, 0x21, true); ch.setUint32(16, crc, true); ch.setUint32(20, sz, true); ch.setUint32(24, sz, true); ch.setUint16(28, nm.length, true); ch.setUint32(42, off, true);
+    central.push(ch.buffer, nm); off += 30 + nm.length + sz;
+  }
+  const cs = central.reduce((a, p) => a + (p.byteLength ?? p.length), 0), end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true); end.setUint32(12, cs, true); end.setUint32(16, off, true);
+  return new Blob([...parts, ...central, end.buffer], { type: 'application/zip' });
+}
+/*PLAN*/
+async function planImport(files) {
+  const jobs = [], notes = [], archives = []; let skip = 0;
+  const low = new Map(files.map(f => [f.name.toLowerCase(), f])), used = new Set(), base = n => n.replace(/\.[^.]+$/, '');
+  const discCue = (cname, bname) => `FILE "${bname}" BINARY\r\n  TRACK 01 MODE2/2352\r\n    INDEX 01 00:00:00\r\n`;
+  for (const cue of files.filter(f => ext(f.name) === 'cue')) {
+    const txt = await cue.text(), refs = [...txt.matchAll(/FILE\s+(?:"([^"]+)"|(\S+))/gi)].map(m => m[1] || m[2]);
+    const loose = files.filter(f => BIN.includes(ext(f.name)) && !used.has(f)); let fixed = txt, ok = refs.length > 0; const parts = [];
+    for (const r of refs) { let f = low.get(r.split(/[\\/]/).pop().toLowerCase()); if (!f && refs.length === 1 && loose.length === 1) { f = loose[0]; fixed = fixed.replace(r, f.name); } if (!f) { ok = false; break; } parts.push(f); }
+    if (!ok) { notes.push(`${cue.name}: select its .bin file(s) together with it`); continue; }
+    used.add(cue); parts.forEach(p => used.add(p));
+    jobs.push({ name: base(cue.name) + '.zip', sys: 'psx', size: parts.reduce((a, p) => a + p.size, 0), zip: [{ name: cue.name, blob: new Blob([fixed]) }, ...parts.map(p => ({ name: p.name, blob: p }))] });
+  }
+  for (const f of files.filter(f => BIN.includes(ext(f.name)) && !used.has(f))) {
+    used.add(f); const s = f.size <= 65536 ? 'a26' : f.size <= 16777216 ? 'md' : 'psx';
+    if (s === 'psx') jobs.push({ name: base(f.name) + '.zip', sys: 'psx', size: f.size, zip: [{ name: base(f.name) + '.cue', blob: new Blob([discCue(0, f.name)]) }, { name: f.name, blob: f }] });
+    else jobs.push({ name: f.name, sys: s, size: f.size, file: f });
+  }
+  for (const f of files.filter(f => !used.has(f) && ext(f.name) !== 'cue')) { const s = sysOf(f.name); if (s) jobs.push({ name: f.name, sys: s.id, size: f.size, file: f }); else if (ARCHIVES.includes(ext(f.name))) archives.push(f); else skip++; }
+  return { jobs, notes, archives, skip };
+}
+/*ENDPLAN*/
+function ask(name) {
+  return new Promise(ok => {
+    const o = document.createElement('div'); o.className = 'ov mid'; o.style.zIndex = 45;
+    o.innerHTML = `<div class="sbody"><h1 style="font-size:28px">Which console is this?</h1><p>${esc(name)} is an archive, so I can’t tell from the name.</p><div class="sysgrid">${SYSTEMS.map(s => `<button class="btn" data-s="${s.id}">${s.name}</button>`).join('')}</div><button class="btn" data-s="">Skip this file</button></div>`;
+    o.onclick = e => { const b = e.target.closest('button'); if (b) { o.remove(); ok(b.dataset.s ? sysById(b.dataset.s) : null); } };
+    document.body.appendChild(o);
+  });
+}
+async function addFiles(files) {
+  files = [...files]; const { jobs, notes, archives, skip } = await planImport(files); let n = 0;
+  for (const f of archives) { const s = await ask(f.name); if (s) jobs.push({ name: f.name, sys: s.id, size: f.size, file: f }); else notes.push('Skipped ' + f.name); }
+  for (const j of jobs) {
+    if (S.lib.some(l => l.file === j.name && l.size === j.size)) continue;
+    try { toast(`Adding ${j.name}…`); const blob = j.zip ? await makeZip(j.zip) : j.file, id = uid(); await dbSet('roms', id, blob);
+      S.lib.push({ id, file: j.name, size: j.size, title: niceTitle(j.name), sys: j.sys, added: Date.now() }); n++; }
+    catch { notes.push('Not enough browser storage for ' + j.name); }
+  }
+  save(); render();
+  toast(notes[0] || (n ? `Added ${n} game${n > 1 ? 's' : ''}${skip ? `, skipped ${skip} unsupported` : ''}` : skip ? 'Unsupported file type. See Supported consoles.' : 'Already in your library'));
+}
+/* ---------- supported consoles menu ---------- */
+function consolesView() {
+  if (document.querySelector('.ov.cons')) return;
+  const cnt = id => S.lib.filter(l => l.sys === id).length, o = document.createElement('div'); o.className = 'ov cons';
+  o.innerHTML = `<div class="bar"><b>Supported consoles</b><span style="flex:1"></span><button class="btn" id="cadd">Add games</button><button class="btn" id="cx">Close</button></div><div class="cbody"><p class="clead">${SYSTEMS.length} consoles. Drop game files anywhere in Shelf and it picks the console from the file type. Zipped games work too, and I’ll ask which console they belong to.</p>
+    <div class="howto glass"><b>PlayStation games</b> come as two files: a <kbd>.cue</kbd> and a <kbd>.bin</kbd>. Select both at once (hold Shift or ⌘/Ctrl in the file picker) or drag both in together, and Shelf bundles them into one game. Importing just the <kbd>.bin</kbd> works too. Single <kbd>.iso</kbd>, <kbd>.chd</kbd> and <kbd>.pbp</kbd> files are fine as they are.</div>
+    <div class="cgrid">${SYSTEMS.map((s, i) => `<div class="ccard" style="--c:${s.color};--i:${i}"><span class="chip">${esc(s.short)}</span><b>${esc(s.name)}</b><div class="exts">${s.exts.map(e => `<kbd>.${e}</kbd>`).join('')}</div><small>${esc(s.note || 'Covers are matched from the file name.')}</small><span class="cnt">${cnt(s.id)} in your library</span></div>`).join('')}</div></div>`;
+  const close = () => { o.classList.add('out'); setTimeout(() => o.remove(), 280); removeEventListener('keydown', onKey); }, onKey = e => { if (e.key === 'Escape') close(); };
+  addEventListener('keydown', onKey); o.querySelector('#cx').onclick = close; o.querySelector('#cadd').onclick = () => $('#file').click();
+  document.body.appendChild(o);
+}
+$('#add').onclick = () => $('#file').click();
+$('#file').accept = [...SYSTEMS.flatMap(s => s.exts), 'cue', 'bin', 'img', ...ARCHIVES].map(e => '.' + e).join(',');
+$('#cons').onclick = consolesView;
+addEventListener('pointermove', e => { const b = e.target.closest && e.target.closest('.btn'); if (b) { const r = b.getBoundingClientRect(); b.style.setProperty('--bx', e.clientX - r.left + 'px'); b.style.setProperty('--by', e.clientY - r.top + 'px'); } });
+$('#file').onchange = e => { addFiles([...e.target.files]); e.target.value = ''; };
+addEventListener('dragover', e => { e.preventDefault(); document.body.classList.add('drag'); });
+addEventListener('dragleave', e => { if (!e.relatedTarget) document.body.classList.remove('drag'); });
+addEventListener('drop', e => { e.preventDefault(); document.body.classList.remove('drag'); addFiles([...e.dataTransfer.files]); });
+
+/* ---------- play ---------- */
+async function play(it) {
+  if (!it || document.querySelector('.ov.play')) return;
+  if (document.activeElement) document.activeElement.blur();
+  S.recent = [it.id, ...S.recent.filter(x => x !== it.id)].slice(0, 8); save();
+  const ov = document.createElement('div'); ov.className = 'ov play';
+  ov.innerHTML = `<div class="bar"><button class="btn" id="bk">← Library</button><b>${esc(it.title)}</b><span style="flex:1"></span><kbd>Esc</kbd></div><div class="stage"></div>`;
+  const show = () => document.body.appendChild(ov); document.startViewTransition ? document.startViewTransition(show) : show();
+  const st = ov.querySelector('.stage');
+  const close = () => { if (stop) stop(); stop = null; ov.classList.add('out'); setTimeout(() => { ov.remove(); render(); }, 280); removeEventListener('keydown', onKey); removeEventListener('message', onMsg); };
+  const onKey = e => { if (e.key === 'Escape') close(); }, onMsg = e => { if (e.data === 'shelf-exit') close(); };
+  addEventListener('keydown', onKey); addEventListener('message', onMsg); ov.querySelector('#bk').onclick = close;
+  if (it.kind === 'b') { const c = document.createElement('canvas'); c.width = 640; c.height = 400; st.appendChild(c); stop = startGame(it.g, c); return; }
+  st.innerHTML = '<span class="loading">Loading emulator…</span>';
+  if (!swReady) { st.innerHTML = '<span class="loading" style="animation:none;padding:30px;text-align:center">This browser can’t run the emulator here.<br>Open Shelf over https or http://localhost in a current browser.</span>'; return; }
+  await swReady;
+  const f = document.createElement('iframe'); f.allow = 'gamepad; autoplay; fullscreen';
+  f.src = `play.html?id=${encodeURIComponent(it.id)}&core=${sysById(it.sys).core}&name=${encodeURIComponent(it.file)}&title=${encodeURIComponent(it.title)}`;
+  f.onload = () => { const l = st.querySelector('.loading'); if (l) l.remove(); f.contentWindow.focus(); };
+  st.appendChild(f);
+}
+
+/* ---------- setup ---------- */
+const slides = [
+  { t: 'Welcome to Shelf', d: 'One place for the games you own. It runs in your browser, and your files never leave your device.' },
+  { t: 'Bring your own games', d: 'Add files for NES, SNES, N64, Game Boy, DS, Genesis, PlayStation and more. Covers are matched from the file name.' },
+  { t: 'Keyboard friendly', d: 'Press Ctrl or ⌘ + K for commands, / to search, and Esc to leave a game. Built-in games live in games.js if you want to edit them.' },
+  { pick: 1 }, { fin: 1 }
+];
+function setup(startAt = 0) {
+  let i = startAt, dir = 1, chosen = new Set(S.builtins);
+  const ov = document.createElement('div'); ov.className = 'ov mid'; ov.style.zIndex = 30; document.body.appendChild(ov);
+  const draw = () => {
+    const s = slides[i], last = i === slides.length - 1; let body;
+    if (s.pick) body = `<h1>Pick your built-in games</h1><p>Choose any or all. You can change this later in the commands menu.</p><div class="pickgrid">${GAMES.map((g, n) => `<div class="pick ${chosen.has(g.id) ? 'sel' : ''}" data-id="${g.id}" style="--i:${n}"><div class="cover">${biTile(g)}<div class="tick">✓</div></div><small>${g.blurb}</small></div>`).join('')}</div><div class="row"><button class="btn" id="all">${chosen.size === GAMES.length ? 'Clear all' : 'Select all'}</button><button class="btn" id="bk">Back</button><button class="btn pri" id="nx">Continue</button></div>`;
+    else if (s.fin) body = `<h1>You’re set</h1><p>${chosen.size ? chosen.size + ' built-in game' + (chosen.size > 1 ? 's' : '') + ' ready.' : 'No built-in games selected.'} Use Add games to import your own, or drag files onto the window.</p><div class="row"><button class="btn" id="bk">Back</button><button class="btn pri" id="nx">Open library</button></div>`;
+    else body = `<h1>${s.t}</h1><p>${s.d}</p><div class="row">${i ? '<button class="btn" id="bk">Back</button>' : ''}<button class="btn pri" id="nx">Continue</button></div>`;
+    ov.innerHTML = `<div class="sbody ${dir < 0 ? 'back' : ''}">${body}</div><div class="dots">${slides.map((_, n) => `<i class="${n === i ? 'on' : ''}"></i>`).join('')}</div>`;
+    ov.querySelectorAll('.pick').forEach(p => p.onclick = () => { const id = p.dataset.id; chosen.has(id) ? chosen.delete(id) : chosen.add(id); p.classList.toggle('sel'); ov.querySelector('#all').textContent = chosen.size === GAMES.length ? 'Clear all' : 'Select all'; });
+    const a = ov.querySelector('#all'); if (a) a.onclick = () => { chosen = chosen.size === GAMES.length ? new Set() : new Set(GAMES.map(g => g.id)); draw(); };
+    const b = ov.querySelector('#bk'); if (b) b.onclick = () => { dir = -1; i--; draw(); };
+    ov.querySelector('#nx').onclick = () => { if (last) { S.builtins = GAMES.map(g => g.id).filter(id => chosen.has(id)); S.done = true; save(); ov.classList.add('out'); setTimeout(() => { ov.remove(); render(); }, 300); } else { dir = 1; i++; draw(); } };
+  };
+  draw();
+}
+
+/* ---------- command palette ---------- */
+let psel = 0;
+const cmds = () => [
+  { n: 'Add games…', h: 'Import', f: () => $('#file').click() },
+  { n: 'Supported consoles', h: 'Info', f: consolesView },
+  { n: 'Choose built-in games…', h: 'Setup', f: () => setup(3) },
+  { n: 'Run welcome tour', h: 'Setup', f: () => setup(0) },
+  { n: 'Check storage used', h: 'Info', f: async () => { const e = await navigator.storage.estimate(); toast(`Using ${(e.usage / 1048576).toFixed(0)} MB of ${(e.quota / 1073741824).toFixed(1)} GB available`); } },
+  { n: 'Clear covers cache', h: 'Fix', f: async () => { const d = await idb; await new Promise(ok => { const t = d.transaction('meta', 'readwrite'); t.objectStore('meta').clear(); t.oncomplete = ok; }); render(); toast('Cover cache cleared'); } },
+  { n: 'Remove all my games', h: 'Danger', f: async () => { if (!confirm('Remove every imported game from this browser?')) return; for (const l of S.lib) await dbDel('roms', l.id); S.lib = []; S.fav = []; S.recent = []; save(); render(); } },
+  ...items().map(i => ({ n: 'Play ' + i.title, h: sysName(i), f: () => play(i) }))
+];
+function pal(open) { $('#pal').classList.toggle('on', open); if (open) { $('#pin').value = ''; psel = 0; $('#pin').focus(); drawPal(); } }
+function drawPal() { const q = $('#pin').value.toLowerCase(), l = cmds().filter(c => c.n.toLowerCase().includes(q)).slice(0, 8); psel = Math.min(psel, Math.max(0, l.length - 1));
+  $('#plist').innerHTML = l.map((c, n) => `<div class="it ${n === psel ? 'sel' : ''}" data-n="${n}">${esc(c.n)}<span>${esc(c.h)}</span></div>`).join(''); $('#plist').l = l; }
+$('#pin').oninput = () => { psel = 0; drawPal(); };
+$('#pin').onkeydown = e => { const l = $('#plist').l || []; if (e.key === 'ArrowDown') { psel = Math.min(l.length - 1, psel + 1); drawPal(); e.preventDefault(); } if (e.key === 'ArrowUp') { psel = Math.max(0, psel - 1); drawPal(); e.preventDefault(); } if (e.key === 'Enter' && l[psel]) { pal(false); l[psel].f(); } if (e.key === 'Escape') pal(false); };
+$('#plist').onclick = e => { const it = e.target.closest('.it'); if (it) { const c = $('#plist').l[it.dataset.n]; pal(false); c.f(); } };
+$('#pal').onclick = e => { if (e.target.id === 'pal') pal(false); };
+$('#cmdk').onclick = () => pal(true);
+addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); pal(!$('#pal').classList.contains('on')); }
+  else if (e.key === '/' && !/INPUT|SELECT/.test(document.activeElement.tagName) && !document.querySelector('.ov')) { e.preventDefault(); $('#q').focus(); }
+});
+if (/Mac/.test(navigator.platform)) $('#mod').textContent = '⌘ K';
+render(); if (!S.done) setup();
+</script></body></html>
